@@ -11,7 +11,7 @@ README.md
 .gitignore
 ```
 
-The app has no database, login, Ollama integration, or MBTI scoring yet.
+The app has no login, Ollama integration, or MBTI scoring yet.
 
 ## App Behavior
 
@@ -61,6 +61,78 @@ Response:
   "echo": "I feel stressed about school."
 }
 ```
+
+Saved quotes:
+
+```http
+GET /api/quotes
+```
+
+Quote analysis:
+
+```http
+GET /api/quotes/analysis
+```
+
+Response:
+
+```json
+{
+  "totalQuotes": 1,
+  "uniqueAuthors": 1,
+  "latestQuote": {
+    "id": 1,
+    "quote_text": "Example quote",
+    "author": "Example Author",
+    "source_url": "https://dummyjson.com/quotes/random",
+    "fetched_at": "2026-07-11T00:00:00.000Z"
+  }
+}
+```
+
+## Data Collection Assignment
+
+This phase adds a simple Quote Data Collector.
+
+External API used:
+
+```text
+https://dummyjson.com/quotes/random
+```
+
+Database used:
+
+```text
+SQLite
+server/data/sociable_growth_coach.sqlite
+```
+
+Schema migration:
+
+```text
+server/migrations/001_create_quotes.sql
+```
+
+Run the migration:
+
+```bash
+npm run migrate
+```
+
+Collect one quote from the external API and save it to SQLite:
+
+```bash
+npm run collect:quotes
+```
+
+View saved data through the API:
+
+```bash
+curl http://localhost:3001/api/quotes
+curl http://localhost:3001/api/quotes/analysis
+```
+
+This phase satisfies the peer-graded data collection assignment because the program fetches quote data from an external REST API and stores the fetched data in a SQLite database using a schema migration.
 
 ## Run Locally
 

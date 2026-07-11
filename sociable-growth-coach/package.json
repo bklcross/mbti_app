@@ -7,9 +7,11 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "concurrently \"node server/index.js\" \"npm run dev --prefix client\"",
+    "dev": "concurrently \"node --no-warnings server/index.js\" \"npm run dev --prefix client\"",
     "build": "npm install --include=dev --prefix client && npm run build --prefix client",
-    "start": "node server/index.js"
+    "migrate": "node --no-warnings server/scripts/migrate.js",
+    "collect:quotes": "node --no-warnings server/scripts/collectQuotes.js",
+    "start": "node --no-warnings server/index.js"
   },
   "keywords": [
     "react",

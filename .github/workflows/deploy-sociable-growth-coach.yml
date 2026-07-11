@@ -81,7 +81,9 @@ jobs:
               "sudo tar -xzf /tmp/sociable-growth-coach-server.tar.gz -C /opt/sociable-growth-coach",
               "cd /opt/sociable-growth-coach",
               "sudo npm ci --omit=dev",
+              "sudo npm run migrate",
               f"sudo sed -i 's|Environment=CORS_ORIGIN=.*|Environment=CORS_ORIGIN={os.environ['CORS_ORIGIN']}|' /etc/systemd/system/sociable-growth-coach.service",
+              "sudo sed -i 's|ExecStart=.*|ExecStart=/usr/bin/node --no-warnings server/index.js|' /etc/systemd/system/sociable-growth-coach.service",
               "sudo systemctl daemon-reload",
               "sudo systemctl restart sociable-growth-coach",
           ]
