@@ -9,8 +9,8 @@
   "scripts": {
     "dev": "concurrently \"node --no-warnings server/index.js\" \"npm run dev --prefix client\"",
     "build": "npm install --include=dev --prefix client && npm run build --prefix client",
-    "migrate": "node --no-warnings server/scripts/migrate.js",
-    "collect:quotes": "node --no-warnings server/scripts/collectQuotes.js",
+    "migrate": "node server/scripts/migrate.js",
+    "collect:quotes": "node server/scripts/collectQuotes.js",
     "start": "node --no-warnings server/index.js"
   },
   "keywords": [
