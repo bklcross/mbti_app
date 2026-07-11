@@ -3,11 +3,14 @@ const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 
 const dataDir = path.join(__dirname, 'data');
-const dbPath = path.join(dataDir, 'sociable_growth_coach.sqlite');
+
+function getDbPath() {
+  return process.env.SQLITE_DB_PATH || path.join(dataDir, 'sociable_growth_coach.sqlite');
+}
 
 function openDb() {
   fs.mkdirSync(dataDir, { recursive: true });
-  return new DatabaseSync(dbPath);
+  return new DatabaseSync(getDbPath());
 }
 
 function run(db, sql, params = []) {
@@ -38,8 +41,8 @@ function close(db) {
 module.exports = {
   all,
   close,
-  dbPath,
   exec,
+  getDbPath,
   get,
   openDb,
   run

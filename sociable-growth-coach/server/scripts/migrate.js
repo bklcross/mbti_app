@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { close, dbPath, exec, openDb } = require('../db');
+const { close, exec, getDbPath, openDb } = require('../db');
 
 async function migrate() {
   const db = openDb();
@@ -14,7 +14,7 @@ async function migrate() {
       console.log(`Applied migration: ${file}`);
     }
 
-    console.log(`Database ready: ${dbPath}`);
+    console.log(`Database ready: ${getDbPath()}`);
   } finally {
     await close(db);
   }

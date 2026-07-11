@@ -114,6 +114,73 @@ button:disabled {
   border: 1px solid #feb2b2;
 }
 
+.quotes-section {
+  margin-top: 32px;
+  border-top: 1px solid #d9e2df;
+  padding-top: 24px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+h2 {
+  margin: 0;
+  color: #102a43;
+  font-size: 1.25rem;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.analysis-grid div {
+  border: 1px solid #d9e2df;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+dt {
+  color: #52606d;
+  font-size: 0.85rem;
+}
+
+dd {
+  margin: 4px 0 0;
+  color: #102a43;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.latest-quote {
+  color: #243b53;
+  font-size: 0.95rem;
+}
+
+.quote-list {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quote-list li {
+  border-left: 3px solid #2f855a;
+  color: #243b53;
+  padding-left: 12px;
+}
+
+.quote-list span {
+  color: #52606d;
+}
+
 @media (max-width: 520px) {
   .reflection-panel {
     padding: 24px;
@@ -125,5 +192,15 @@ button:disabled {
 
   button {
     width: 100%;
+  }
+
+  .section-heading,
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

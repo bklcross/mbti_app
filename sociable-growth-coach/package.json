@@ -11,7 +11,8 @@
     "build": "npm install --include=dev --prefix client && npm run build --prefix client",
     "migrate": "node server/scripts/migrate.js",
     "collect:quotes": "node server/scripts/collectQuotes.js",
-    "start": "node --no-warnings server/index.js"
+    "start": "node --no-warnings server/index.js",
+    "test": "node --no-warnings --test"
   },
   "keywords": [
     "react",

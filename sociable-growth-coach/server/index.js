@@ -1,13 +1,23 @@
 const cors = require('cors');
 const express = require('express');
-const { all, close, get, openDb } = require('./db');
+const { close, openDb } = require('./db');
+const {
+  collectQuote,
+  getQuoteAnalysis,
+  listQuotes
+} = require('./services/quoteService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+let totalRequests = 0;
 
 app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
+app.use((req, res, next) => {
+  totalRequests += 1;
+  next();
+});
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
@@ -33,14 +43,7 @@ app.get('/api/quotes', async (req, res, next) => {
   const db = openDb();
 
   try {
-    const quotes = await all(
-      db,
-      `SELECT id, quote_text, author, source_url, fetched_at
-       FROM quotes
-       ORDER BY fetched_at DESC, id DESC`
-    );
-
-    res.json({ quotes });
+    res.json({ quotes: listQuotes(db) });
   } catch (error) {
     next(error);
   } finally {
@@ -52,25 +55,39 @@ app.get('/api/quotes/analysis', async (req, res, next) => {
   const db = openDb();
 
   try {
-    const totals = await get(
-      db,
-      `SELECT
-         COUNT(*) AS totalQuotes,
-         COUNT(DISTINCT author) AS uniqueAuthors
-       FROM quotes`
-    );
-    const latestQuote = await get(
-      db,
-      `SELECT id, quote_text, author, source_url, fetched_at
-       FROM quotes
-       ORDER BY fetched_at DESC, id DESC
-       LIMIT 1`
-    );
+    res.json(getQuoteAnalysis(db));
+  } catch (error) {
+    next(error);
+  } finally {
+    await close(db);
+  }
+});
+
+app.post('/api/quotes/collect', async (req, res, next) => {
+  const db = openDb();
+
+  try {
+    res.status(201).json({ quote: await collectQuote(db) });
+  } catch (error) {
+    next(error);
+  } finally {
+    await close(db);
+  }
+});
+
+app.get('/metrics', async (req, res, next) => {
+  const db = openDb();
+
+  try {
+    const analysis = getQuoteAnalysis(db);
 
     res.json({
-      totalQuotes: totals.totalQuotes,
-      uniqueAuthors: totals.uniqueAuthors,
-      latestQuote: latestQuote || null
+      status: 'ok',
+      uptime: process.uptime(),
+      totalRequests,
+      totalQuotes: analysis.totalQuotes,
+      uniqueAuthors: analysis.uniqueAuthors,
+      latestQuoteFetchedAt: analysis.latestQuote?.fetched_at || null
     });
   } catch (error) {
     next(error);
@@ -79,6 +96,10 @@ app.get('/api/quotes/analysis', async (req, res, next) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Sociable Growth Coach server listening on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Sociable Growth Coach server listening on port ${PORT}`);
+  });
+}
+
+module.exports = app;

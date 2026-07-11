@@ -6,6 +6,7 @@ Minimal CSCA 5028 app with:
 - Node.js / Express backend
 - SQLite quote data collection
 - Echo reflection API
+- Basic metrics endpoint
 
 Public app URL:
 
@@ -18,6 +19,13 @@ https://dzmxv9ygl1eyq.cloudfront.net
 ```text
 client/   React frontend
 server/   Express backend, SQLite migration, quote collector
+```
+
+## Architecture
+
+```text
+React frontend -> Express API -> SQLite
+Quote collector -> DummyJSON Quotes API -> SQLite
 ```
 
 ## Run Locally
@@ -39,6 +47,12 @@ Collect one quote from DummyJSON and save it:
 
 ```bash
 npm run collect:quotes
+```
+
+Run tests:
+
+```bash
+npm test
 ```
 
 Start the app:
@@ -112,6 +126,18 @@ Quote analysis:
 GET /api/quotes/analysis
 ```
 
+Collect and save a new quote:
+
+```http
+POST /api/quotes/collect
+```
+
+Monitoring:
+
+```http
+GET /metrics
+```
+
 ## Build
 
 Build the frontend:
@@ -133,3 +159,16 @@ The workflow deploys:
 - frontend to S3 / CloudFront
 - backend to EC2
 - migration on the backend server
+
+## Final Project Checklist
+
+- React frontend
+- Express backend
+- SQLite database
+- Migration file
+- External API data collector
+- API endpoints for saved data and analysis
+- Basic monitoring endpoint
+- Automated tests
+- GitHub Actions CI
+- Public deployment
