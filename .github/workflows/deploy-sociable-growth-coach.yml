@@ -1,0 +1,100 @@
+name: Deploy Sociable Growth Coach
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sociable-growth-coach/**"
+      - ".github/workflows/deploy-sociable-growth-coach.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-west-1
+  AWS_ROLE_ARN: arn:aws:iam::129405039505:role/sociable-growth-coach-github-actions
+  BACKEND_BUCKET: sociable-growth-coach-deploy-129405039505-us-west-1
+  CLOUDFRONT_DISTRIBUTION_ID: E3KGFLBSEN7JYF
+  CORS_ORIGIN: https://dzmxv9ygl1eyq.cloudfront.net
+  EC2_INSTANCE_ID: i-010b746e7db1ab34f
+  FRONTEND_BUCKET: sociable-growth-coach-frontend-129405039505-us-west-1
+  VITE_API_BASE_URL: http://13.52.211.250
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sociable-growth-coach
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            sociable-growth-coach/package-lock.json
+            sociable-growth-coach/client/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix client
+
+      - name: Build frontend
+        run: npm run build --prefix client
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy frontend
+        run: |
+          aws s3 sync client/dist "s3://${FRONTEND_BUCKET}" --delete
+          aws cloudfront create-invalidation --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" --paths "/*"
+
+      - name: Package backend
+        run: tar -czf /tmp/sociable-growth-coach-server.tar.gz server package.json package-lock.json
+
+      - name: Deploy backend
+        run: |
+          aws s3 cp /tmp/sociable-growth-coach-server.tar.gz "s3://${BACKEND_BUCKET}/backend/sociable-growth-coach-server.tar.gz"
+          BACKEND_URL=$(aws s3 presign "s3://${BACKEND_BUCKET}/backend/sociable-growth-coach-server.tar.gz" --expires-in 600)
+          export BACKEND_URL
+          python - <<'PY' > /tmp/ssm-command.json
+          import json
+          import os
+
+          commands = [
+              "set -e",
+              f"curl -L '{os.environ['BACKEND_URL']}' -o /tmp/sociable-growth-coach-server.tar.gz",
+              "sudo mkdir -p /opt/sociable-growth-coach",
+              "sudo tar -xzf /tmp/sociable-growth-coach-server.tar.gz -C /opt/sociable-growth-coach",
+              "cd /opt/sociable-growth-coach",
+              "sudo npm ci --omit=dev",
+              f"sudo sed -i 's|Environment=CORS_ORIGIN=.*|Environment=CORS_ORIGIN={os.environ['CORS_ORIGIN']}|' /etc/systemd/system/sociable-growth-coach.service",
+              "sudo systemctl daemon-reload",
+              "sudo systemctl restart sociable-growth-coach",
+          ]
+
+          print(json.dumps({
+              "InstanceIds": [os.environ["EC2_INSTANCE_ID"]],
+              "DocumentName": "AWS-RunShellScript",
+              "Comment": "Deploy Sociable Growth Coach API",
+              "Parameters": {"commands": commands},
+          }))
+          PY
+          COMMAND_ID=$(BACKEND_URL="${BACKEND_URL}" aws ssm send-command \
+            --cli-input-json file:///tmp/ssm-command.json \
+            --query "Command.CommandId" \
+            --output text)
+          aws ssm wait command-executed --command-id "${COMMAND_ID}" --instance-id "${EC2_INSTANCE_ID}"
