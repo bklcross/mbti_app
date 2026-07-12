@@ -2,6 +2,12 @@ const cors = require('cors');
 const express = require('express');
 const { close, openDb } = require('./db');
 const {
+  getReflectionStats,
+  getReflectionSummary,
+  listReflections,
+  saveReflection
+} = require('./services/reflectionService');
+const {
   collectQuote,
   getQuoteAnalysis,
   listQuotes
@@ -33,10 +39,42 @@ app.post('/api/echo', (req, res) => {
     });
   }
 
+  const db = openDb();
+
+  try {
+    saveReflection(db, reflection.trim());
+  } finally {
+    close(db);
+  }
+
   return res.json({
     message: 'Reflection received',
-    echo: reflection
+    echo: reflection.trim()
   });
+});
+
+app.get('/api/reflections', async (req, res, next) => {
+  const db = openDb();
+
+  try {
+    res.json({ reflections: listReflections(db) });
+  } catch (error) {
+    next(error);
+  } finally {
+    await close(db);
+  }
+});
+
+app.get('/api/reflections/summary', async (req, res, next) => {
+  const db = openDb();
+
+  try {
+    res.json(await getReflectionSummary(db));
+  } catch (error) {
+    next(error);
+  } finally {
+    await close(db);
+  }
 });
 
 app.get('/api/quotes', async (req, res, next) => {
@@ -80,6 +118,7 @@ app.get('/metrics', async (req, res, next) => {
 
   try {
     const analysis = getQuoteAnalysis(db);
+    const reflectionStats = getReflectionStats(db);
 
     res.json({
       status: 'ok',
@@ -87,7 +126,9 @@ app.get('/metrics', async (req, res, next) => {
       totalRequests,
       totalQuotes: analysis.totalQuotes,
       uniqueAuthors: analysis.uniqueAuthors,
-      latestQuoteFetchedAt: analysis.latestQuote?.fetched_at || null
+      latestQuoteFetchedAt: analysis.latestQuote?.fetched_at || null,
+      totalReflections: reflectionStats.totalReflections,
+      latestReflectionCreatedAt: reflectionStats.latestReflection?.created_at || null
     });
   } catch (error) {
     next(error);

@@ -7,6 +7,7 @@ const test = require('node:test');
 
 const { close, exec, openDb, run } = require('../db');
 const { mapQuoteResponse } = require('../gateways/quoteGateway');
+const { getReflectionSummary, saveReflection } = require('../services/reflectionService');
 const { analyzeQuoteRows } = require('../services/quoteService');
 
 const testDbPath = path.join(os.tmpdir(), `sociable-growth-coach-${process.pid}.sqlite`);
@@ -59,6 +60,7 @@ test.beforeEach(() => {
 
   try {
     exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '001_create_quotes.sql'), 'utf8'));
+    exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '002_create_reflections.sql'), 'utf8'));
     run(
       db,
       `INSERT INTO quotes (quote_text, author, source_url, fetched_at)
@@ -95,6 +97,21 @@ test('mapQuoteResponse maps external API data', () => {
   assert.match(quote.fetchedAt, /^\d{4}-\d{2}-\d{2}T/);
 });
 
+test('getReflectionSummary summarizes saved reflections', async () => {
+  const db = openDb();
+
+  try {
+    saveReflection(db, 'I feel focused on finishing school.');
+    const summary = await getReflectionSummary(db, async () => 'The reflections show focus and steady progress.');
+
+    assert.equal(summary.totalReflections, 1);
+    assert.equal(summary.summarySource, 'ml-api');
+    assert.equal(summary.summary, 'The reflections show focus and steady progress.');
+  } finally {
+    close(db);
+  }
+});
+
 test('GET /health returns ok', async () => {
   const server = app.listen(0);
 
@@ -124,6 +141,22 @@ test('POST /api/echo validates and echoes reflection', async () => {
       message: 'Reflection received',
       echo: 'I feel ready.'
     });
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /api/reflections returns saved reflections', async () => {
+  const server = app.listen(0);
+
+  try {
+    await request(server, 'POST', '/api/echo', {
+      reflection: 'I feel organized.'
+    });
+    const response = await request(server, 'GET', '/api/reflections');
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.reflections[0].reflection_text, 'I feel organized.');
   } finally {
     server.close();
   }

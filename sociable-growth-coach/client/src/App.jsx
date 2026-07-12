@@ -6,9 +6,27 @@ function App() {
   const [reflection, setReflection] = useState('');
   const [feedback, setFeedback] = useState(null);
   const [submittedReflections, setSubmittedReflections] = useState([]);
+  const [reflectionSummary, setReflectionSummary] = useState(null);
   const [quotes, setQuotes] = useState([]);
   const [analysis, setAnalysis] = useState(null);
   const [quoteMessage, setQuoteMessage] = useState('');
+
+  async function loadReflections() {
+    const [reflectionsResponse, summaryResponse] = await Promise.all([
+      fetch(`${API_BASE_URL}/api/reflections`),
+      fetch(`${API_BASE_URL}/api/reflections/summary`)
+    ]);
+
+    if (!reflectionsResponse.ok || !summaryResponse.ok) {
+      throw new Error('Unable to load reflections.');
+    }
+
+    const reflectionsData = await reflectionsResponse.json();
+    const summaryData = await summaryResponse.json();
+
+    setSubmittedReflections(reflectionsData.reflections);
+    setReflectionSummary(summaryData);
+  }
 
   async function loadQuotes() {
     const [quotesResponse, analysisResponse] = await Promise.all([
@@ -28,6 +46,7 @@ function App() {
   }
 
   useEffect(() => {
+    loadReflections().catch((error) => setFeedback({ type: 'error', text: error.message }));
     loadQuotes().catch((error) => setQuoteMessage(error.message));
   }, []);
 
@@ -55,8 +74,8 @@ function App() {
       }
 
       setFeedback({ type: 'success', text: `${data.message}: ${data.echo}` });
-      setSubmittedReflections((current) => [data.echo, ...current]);
       setReflection('');
+      await loadReflections();
     } catch (submitError) {
       setFeedback({ type: 'error', text: submitError.message });
     }
@@ -107,9 +126,10 @@ function App() {
         {submittedReflections.length > 0 && (
           <section className="submitted-section" aria-labelledby="submitted-title">
             <h2 id="submitted-title">Previously submitted reflections</h2>
+            {reflectionSummary && <p className="summary-report">{reflectionSummary.summary}</p>}
             <ul className="reflection-list">
-              {submittedReflections.map((submittedReflection, index) => (
-                <li key={`${submittedReflection}-${index}`}>{submittedReflection}</li>
+              {submittedReflections.map((submittedReflection) => (
+                <li key={submittedReflection.id}>{submittedReflection.reflection_text}</li>
               ))}
             </ul>
           </section>

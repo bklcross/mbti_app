@@ -5,7 +5,8 @@ Minimal CSCA 5028 app with:
 - React Vite frontend
 - Node.js / Express backend
 - SQLite quote data collection
-- Echo reflection API
+- Stored reflection API
+- Server-side reflection summary report
 - Basic metrics endpoint
 
 Public app URL:
@@ -26,6 +27,7 @@ server/   Express backend, SQLite migration, quote collector
 ```text
 React frontend -> Express API -> SQLite
 Quote collector -> DummyJSON Quotes API -> SQLite
+Reflection summary -> free text model API
 ```
 
 ## Run Locally
@@ -37,7 +39,7 @@ npm install
 npm install --prefix client
 ```
 
-Create the SQLite database and table:
+Create the SQLite database and tables:
 
 ```bash
 npm run migrate
@@ -87,6 +89,7 @@ Migration:
 
 ```text
 server/migrations/001_create_quotes.sql
+server/migrations/002_create_reflections.sql
 ```
 
 This satisfies the assignment because the app fetches quote data from an external REST API and stores it in SQLite using a schema migration.
@@ -112,6 +115,18 @@ Body:
 {
   "reflection": "I feel stressed about school."
 }
+```
+
+Saved reflections:
+
+```http
+GET /api/reflections
+```
+
+Reflection summary report:
+
+```http
+GET /api/reflections/summary
 ```
 
 Saved quotes:

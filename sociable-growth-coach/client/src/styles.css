@@ -124,6 +124,11 @@ button:disabled {
   margin-top: 24px;
 }
 
+.summary-report {
+  color: #243b53;
+  margin: 12px 0 0;
+}
+
 .section-heading {
   display: flex;
   align-items: center;
