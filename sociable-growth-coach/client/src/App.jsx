@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 function App() {
   const [reflection, setReflection] = useState('');
   const [feedback, setFeedback] = useState(null);
-  const [submittedReflections, setSubmittedReflections] = useState([]);
+  const [reflections, setReflections] = useState([]);
   const [reflectionSummary, setReflectionSummary] = useState(null);
   const [quotes, setQuotes] = useState([]);
   const [analysis, setAnalysis] = useState(null);
@@ -24,7 +24,7 @@ function App() {
     const reflectionsData = await reflectionsResponse.json();
     const summaryData = await summaryResponse.json();
 
-    setSubmittedReflections(reflectionsData.reflections);
+    setReflections(reflectionsData.reflections);
     setReflectionSummary(summaryData);
   }
 
@@ -53,7 +53,9 @@ function App() {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (!reflection.trim()) {
+    const trimmedReflection = reflection.trim();
+
+    if (!trimmedReflection) {
       setFeedback({ type: 'error', text: 'Please enter a reflection.' });
       return;
     }
@@ -64,7 +66,7 @@ function App() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ reflection: reflection.trim() })
+        body: JSON.stringify({ reflection: trimmedReflection })
       });
 
       const data = await response.json();
@@ -123,13 +125,13 @@ function App() {
 
         {feedback && <p className={`message ${feedback.type}`}>{feedback.text}</p>}
 
-        {submittedReflections.length > 0 && (
+        {reflections.length > 0 && (
           <section className="submitted-section" aria-labelledby="submitted-title">
             <h2 id="submitted-title">Previously submitted reflections</h2>
             {reflectionSummary && <p className="summary-report">{reflectionSummary.summary}</p>}
             <ul className="reflection-list">
-              {submittedReflections.map((submittedReflection) => (
-                <li key={submittedReflection.id}>{submittedReflection.reflection_text}</li>
+              {reflections.map((savedReflection) => (
+                <li key={savedReflection.id}>{savedReflection.reflection_text}</li>
               ))}
             </ul>
           </section>

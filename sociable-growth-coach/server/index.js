@@ -29,10 +29,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.post('/api/echo', (req, res) => {
+app.post('/api/echo', async (req, res, next) => {
   const reflection = req.body?.reflection;
+  const trimmedReflection = typeof reflection === 'string' ? reflection.trim() : '';
 
-  if (typeof reflection !== 'string' || reflection.trim() === '') {
+  if (!trimmedReflection) {
     return res.status(400).json({
       message: 'Please enter a reflection.',
       echo: ''
@@ -42,14 +43,16 @@ app.post('/api/echo', (req, res) => {
   const db = openDb();
 
   try {
-    saveReflection(db, reflection.trim());
+    saveReflection(db, trimmedReflection);
+  } catch (error) {
+    return next(error);
   } finally {
-    close(db);
+    await close(db);
   }
 
   return res.json({
     message: 'Reflection received',
-    echo: reflection.trim()
+    echo: trimmedReflection
   });
 });
 
