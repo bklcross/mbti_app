@@ -1,4 +1,4 @@
-const SUMMARY_API_URL = process.env.SUMMARY_API_URL || 'https://gen.pollinations.ai/text';
+const SUMMARY_API_URL = process.env.SUMMARY_API_URL || 'https://text.pollinations.ai';
 
 function buildSummaryPrompt(reflections) {
   return [
