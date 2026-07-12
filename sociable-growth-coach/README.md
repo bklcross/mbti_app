@@ -161,7 +161,7 @@ Build the frontend:
 npm run build --prefix client
 ```
 
-The deployed frontend calls same-origin API paths through CloudFront, such as `/api/echo`.
+The deployed frontend calls same-origin API paths, such as `/api/echo`.
 
 ## Deploy
 
@@ -171,11 +171,7 @@ Push to `main` to auto-deploy with GitHub Actions:
 git push origin main
 ```
 
-The workflow deploys:
-
-- frontend to S3 / CloudFront
-- backend to EC2
-- migration on the backend server
+The workflow deploys the frontend, backend, and database migrations for the public app.
 
 ## Final Project Checklist
 
