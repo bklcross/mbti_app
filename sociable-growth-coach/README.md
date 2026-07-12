@@ -143,8 +143,10 @@ GET /metrics
 Build the frontend:
 
 ```bash
-VITE_API_BASE_URL=http://localhost:3001 npm run build --prefix client
+npm run build --prefix client
 ```
+
+The deployed frontend calls same-origin API paths through CloudFront, such as `/api/echo`.
 
 ## Deploy
 

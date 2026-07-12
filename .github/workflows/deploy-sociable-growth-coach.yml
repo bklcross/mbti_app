@@ -20,7 +20,6 @@ env:
   CORS_ORIGIN: https://dzmxv9ygl1eyq.cloudfront.net
   EC2_INSTANCE_ID: i-010b746e7db1ab34f
   FRONTEND_BUCKET: sociable-growth-coach-frontend-129405039505-us-west-1
-  VITE_API_BASE_URL: http://13.52.211.250
 
 jobs:
   deploy:
