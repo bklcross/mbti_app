@@ -5,6 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 function App() {
   const [reflection, setReflection] = useState('');
   const [feedback, setFeedback] = useState(null);
+  const [submittedReflections, setSubmittedReflections] = useState([]);
   const [quotes, setQuotes] = useState([]);
   const [analysis, setAnalysis] = useState(null);
   const [quoteMessage, setQuoteMessage] = useState('');
@@ -54,6 +55,8 @@ function App() {
       }
 
       setFeedback({ type: 'success', text: `${data.message}: ${data.echo}` });
+      setSubmittedReflections((current) => [data.echo, ...current]);
+      setReflection('');
     } catch (submitError) {
       setFeedback({ type: 'error', text: submitError.message });
     }
@@ -100,6 +103,17 @@ function App() {
         </form>
 
         {feedback && <p className={`message ${feedback.type}`}>{feedback.text}</p>}
+
+        {submittedReflections.length > 0 && (
+          <section className="submitted-section" aria-labelledby="submitted-title">
+            <h2 id="submitted-title">Previously submitted reflections</h2>
+            <ul className="reflection-list">
+              {submittedReflections.map((submittedReflection, index) => (
+                <li key={`${submittedReflection}-${index}`}>{submittedReflection}</li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className="quotes-section" aria-labelledby="quotes-title">
           <div className="section-heading">
